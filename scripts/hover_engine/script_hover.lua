@@ -11,7 +11,7 @@ local carCTRL = {
 
     Steer = {
         Mult = 10,
-        RollMult = 4
+        RollMult = 2.75
     },
     CntSteer = {
         Mult = 2000,
@@ -39,8 +39,8 @@ local ST = {
         kd = 0.65
     },
     yYawPid = {     --  Yaw     - localAngularVelocity.y
-        mult = 200,
-        kp = 0.5,
+        mult = 250,
+        kp = 0.75,
         ki = 0.015,
         kd = 0.15
     },
@@ -161,12 +161,45 @@ function FlyCtrl:getDefaultAltitudeCorrection(currentAlt) -- returns value in me
         -- ac.debug("r122 - addHoverAlt", addHoverAlt)
         return addHoverAlt + speedHeight
 end
+-- some ugly workarounds to get reasonable height above surface
+-- TODO: find better solution
+local prevPosY = 0
+local prevCgH = 0
+local scale = 100
+local lowDFilter = 2
+local deltaFilter = 5
+local trustedHeight = car.cgHeight
+function FlyCtrl:getCurrentAlt() -- returns value in meters
+    local gyDeltaScaled = (car.position.y - prevPosY) * scale
+    prevPosY = car.position.y
+
+    local cghDelta = car.cgHeight - prevCgH
+    local cghDeltaScaled = cghDelta * scale
+    prevCgH = car.cgHeight
+
+    local deltasDelta = math.abs(cghDeltaScaled - gyDeltaScaled)
+
+    local isDeltaBig = lowDFilter < math.abs(gyDeltaScaled)
+    local isDeltaSimilar = math.round(deltasDelta, 2) < 0.1
+    local isDeltaReasonable = deltasDelta < deltaFilter
+
+    local allGood = isDeltaBig and isDeltaSimilar and isDeltaReasonable
+
+    if allGood or (0.6 < car.cgHeight) then
+        trustedHeight = car.cgHeight
+    end
+    return trustedHeight + cghDelta
+end
+
 function FlyCtrl:runHover(powerK, ss)  ------------------------------------------------------
-    local currentAlt = car.cgHeight
+    local currentAlt = self:getCurrentAlt()
     local newTargetAlt = self.baseHoveringAlt
 
-    ac.debug("r101 - currentAlt", currentAlt, -2, 25)
+    ac.debug("r101 - cgHeight", car.cgHeight, -2, 25)
     ac.debug("r110 - car.position.y", car.position.y, -2, 25)
+    ac.debug("r120 - currentAlt", currentAlt, -2, 25)
+
+    -- currentAlt = car.position.y + 0.46
     -- ac.debug("r140 - newTargetAlt", newTargetAlt)
 
     if ss == SState.FLY then
@@ -228,7 +261,7 @@ function FlyCtrl:runRoll(input)
     self.fly:roll(force)
 end
 function FlyCtrl:steerSpeedMult(input)
-    return input * (0.2 + 0.8 * math.saturate(data.speedKmh * 0.03))
+    return input * (0.7 + 0.3 * math.saturate(data.speedKmh * 0.03))
 end
 local tempV = const(vec3())
 function FlyCtrl:runAirResist(brake)
@@ -249,7 +282,6 @@ function FlyCtrl:calcAirFriction(v, d)
     return (v < 0) and -(v^2+d) or v^2+d
 end
 
-local tc = 0
 local y_off   =  0.10
 local axleF_x =  0.80
 local cog_y   = -0.035
@@ -291,9 +323,6 @@ end
 function FlyEngine:lift(f)
     local lf = math.clampN(f, -5000, 50000)
     ac.addForce(carP.Top, true, flyFV:setScaled(vec.Up, lf), false)
-    -- if tc % 30 == 0 then
-    --     ac.debug("f220 - lift force", lf, -1000, 50000)
-    -- end
 end
 function FlyEngine:turboLift(f)
     ac.addForce(carP.Top, true, flyFV:setScaled(vec.Up, f), true)
@@ -310,49 +339,11 @@ end
 ------------------------------------------------------
 local flyCtrl = {}
 local sm = {}
-
-local function runClock() tc = (1000000 < tc) and 0 or (tc + 1) end
 local function debugOutput()
     ac.debug("a101 - extraA", car.extraA)
     ac.debug("c102 - carP.Ct", carP.Ct)
 
     ac.debug("c122 - sm.ss", sm.ss)
-
-    -- ac.debug("c111 - carP.Fr", carP.Fr)
-    -- ac.debug("c121 - carP.Rr", carP.Rr)
-    -- ac.debug("c131 - carP.Lt", carP.Lt)
-    -- ac.debug("c141 - carP.Rt", carP.Rt)
-    -- ac.debug("c151 - carP.Ac", carP.Ac)
-    -- ac.debug("c161 - carP.Br", carP.Br)
-
-    -- ac.debug("w101 - wheel.F", wheelP.F)
-    -- ac.debug("w131 - wheel.R", wheelP.R)
-    -- ac.debug("w201 - wheel.LF", wheelP.LF)
-    -- ac.debug("w231 - wheel.RF", wheelP.RF)
-    -- ac.debug("w321 - wheel.LR", wheelP.LR)
-    -- ac.debug("w331 - wheel.RR", wheelP.RR)
-
-    -- ac.debug("l220 - data.localVelocity.x", data.localVelocity.x, -10, 10)
-    -- ac.debug("l240 - data.localVelocity.y", data.localVelocity.y, -10, 10)
-    -- ac.debug("l260 - data.localVelocity.z", data.localVelocity.z, -10, 10)
-
-    -- ac.debug("o120 - flyCtrl.pitchCtrl", flyCtrl.pitchCtrl)
-    -- ac.debug("o122 - flyCtrl.yawCtrl", flyCtrl.yawCtrl)
-    -- ac.debug("o124 - flyCtrl.rollCtrl", flyCtrl.rollCtrl)
-    -- ac.debug("o126 - flyCtrl.hoverCtrl", flyCtrl.hoverCtrl)
-    -- ac.debug("o128 - flyCtrl.fly", flyCtrl.fly)
-
-    ac.debug("r560 - data.steer", data.steer, -1, 1)
-    ac.debug("r560 - car.steer", car.steer, -500, 500)
-    ac.debug("r570 - car.steerLock", car.steerLock)
-    ac.debug("r580 - steerLock", car.steer  * steerLock_inv, -1 , 1)
-
-    if tc % 20 == 0 then
-        -- showVec(data.look,"003 data.look")
-        ac.debug("z811 - car.height", car.cgHeight, -10, 50)
-        ac.debug("z812 - baseHoveringAlt", flyCtrl.baseHoveringAlt, -10, 50)
-        ac.debug("z816 - targetAltitude", flyCtrl.targetAltitude, -10, 50)
-    end
 end
 ------------------------------------------------------
 
@@ -492,9 +483,8 @@ local function script_hoverMode(dt)
         sm = StateMachine:new(flyCtrl)
         initDone = true
     end
-    runClock()
     sm:makeMove()
 
-    -- debugOutput()
+    debugOutput()
 end
 return script_hoverMode
