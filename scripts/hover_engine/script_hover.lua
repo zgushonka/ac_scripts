@@ -59,6 +59,7 @@ local AIR = {
 -- vec3(left, up, front)
 local vec = {
     Up = vec3( 0, 1, 0),
+    Dn = vec3( 0,-1, 0),
     Lf = vec3( 1, 0, 0),
     Rt = vec3(-1, 0, 0),
     Fr = vec3( 0, 0, 1),
@@ -67,8 +68,7 @@ local vec = {
 }
 local gDt = 0.003
 local dt_inv = const(1 / gDt)
-local steerLock_inv = const (1 / car.steerLock)
-local hoverEnabledKey = const("zg_Hoov_Enabled")
+-- local steerLock_inv = const (1 / car.steerLock)
 local SState = {
     DRIVE = 1,
     FLY  = 2,
@@ -161,47 +161,16 @@ function FlyCtrl:getDefaultAltitudeCorrection(currentAlt) -- returns value in me
         -- ac.debug("r122 - addHoverAlt", addHoverAlt)
         return addHoverAlt + speedHeight
 end
--- some ugly workarounds to get reasonable height above surface
--- TODO: find better solution
-local prevPosY = 0
-local prevCgH = 0
-local scale = 100
-local lowDFilter = 2
-local deltaFilter = 5
-local trustedHeight = car.cgHeight
-function FlyCtrl:getCurrentAlt() -- returns value in meters
-    local gyDeltaScaled = (car.position.y - prevPosY) * scale
-    prevPosY = car.position.y
-
-    local cghDelta = car.cgHeight - prevCgH
-    local cghDeltaScaled = cghDelta * scale
-    prevCgH = car.cgHeight
-
-    local deltasDelta = math.abs(cghDeltaScaled - gyDeltaScaled)
-
-    local isDeltaBig = lowDFilter < math.abs(gyDeltaScaled)
-    local isDeltaSimilar = math.round(deltasDelta, 2) < 0.1
-    local isDeltaReasonable = deltasDelta < deltaFilter
-
-    local allGood = isDeltaBig and isDeltaSimilar and isDeltaReasonable
-
-    if allGood or (0.6 < car.cgHeight) then
-        trustedHeight = car.cgHeight
-    end
-    return trustedHeight + cghDelta
+function FlyCtrl:getReycastAlt()
+    local distToGround = physics.raycastTrack(car.position, vec.Dn, 20)
+    local noIntersection = (distToGround == -1)
+    return noIntersection and car.position.y or distToGround
 end
-
 function FlyCtrl:runHover(powerK, ss)  ------------------------------------------------------
-    local currentAlt = self:getCurrentAlt()
     local newTargetAlt = self.baseHoveringAlt
+    local currentAlt = self:getReycastAlt()
 
-    ac.debug("r101 - cgHeight", car.cgHeight, -2, 25)
-    ac.debug("r110 - car.position.y", car.position.y, -2, 25)
-    ac.debug("r120 - currentAlt", currentAlt, -2, 25)
-
-    -- currentAlt = car.position.y + 0.46
-    -- ac.debug("r140 - newTargetAlt", newTargetAlt)
-
+    -- ac.debug("r120 - currentAlt", currentAlt, -2, 25)
     if ss == SState.FLY then
         -- edit here to add custom hover fly height behaviour
         local defaultAlt = self:getDefaultAltitudeCorrection(currentAlt)
@@ -356,7 +325,7 @@ local Text = {
     off = "Off"
 }
 local function makeAltimeterLine()
-    local height = math.round(car.cgHeight, 1)
+    local height = math.round(flyCtrl:getReycastAlt(), 1)
     return string.format("%s: %0.1fm", Text.altimeter ,height)
 end
 local function showAltitude()
@@ -373,6 +342,8 @@ end
 local function showHoverStatus(mode, status)
     ac.setMessage(Text.title, makeHoverLine(mode, status))
 end
+
+local hoverEnabledKey = const("zg_Hov_Enabled")
 
 local StateMachine = {}
 local timerSec = 1.5
@@ -407,7 +378,7 @@ function StateMachine:makeMove()
     local inAirSt = inFlySt or inLandingSt
 
     local isFlyOn = car.extraA
-    local onLand = car.cgHeight < (H.LandingHeight + 0.2)
+    local onLand = self.model:getReycastAlt() < (H.LandingHeight + 0.2)
 
     if inDriveSt and isFlyOn then
         self.model:setHoveringAlt(H.FlyHeight)
