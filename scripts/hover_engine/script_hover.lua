@@ -1,5 +1,5 @@
 -- Hover mode
--- by: zgshnk v2.18 20250303. Licensed under CC BY-SA 4.0.
+-- by: zgshnk v2.20 20250304. Licensed under CC BY-SA 4.0.
 -- https://creativecommons.org/licenses/by-sa/4.0/
 
 local data = ac.accessCarPhysics()
@@ -11,7 +11,7 @@ local carCTRL = {
 
     Steer = {
         Mult = 10,
-        RollMult = 5
+        RollMult = 4
     },
     CntSteer = {
         Mult = 2000,
@@ -151,8 +151,15 @@ function FlyCtrl:run(powerK, ss)
     self:runRoll(data.steer)
     self:runAirResist(data.brake)
 end
-function FlyCtrl:getCustomHeight() -- returns value in meters
-    return 0
+-- function FlyCtrl:getCustomAltitudeCorrection() -- returns value in meters
+--     return 0
+-- end
+function FlyCtrl:getDefaultAltitudeCorrection(currentAlt) -- returns value in meters
+        local speedHeight = math.saturate(data.localVelocity:length() * 0.02) * 2
+        local addHoverAlt = math.max(0, currentAlt - self.baseHoveringAlt) * 0.25
+        -- ac.debug("r120 - speedHeight", speedHeight, 0, 10)
+        -- ac.debug("r122 - addHoverAlt", addHoverAlt)
+        return addHoverAlt + speedHeight
 end
 function FlyCtrl:runHover(powerK, ss)  ------------------------------------------------------
     local currentAlt = car.cgHeight
@@ -160,42 +167,38 @@ function FlyCtrl:runHover(powerK, ss)  -----------------------------------------
 
     ac.debug("r101 - currentAlt", currentAlt, -2, 25)
     ac.debug("r110 - car.position.y", car.position.y, -2, 25)
-    ac.debug("r140 - newTargetAlt", newTargetAlt)
+    -- ac.debug("r140 - newTargetAlt", newTargetAlt)
 
     if ss == SState.FLY then
-        local speedHeight = math.saturate(data.localVelocity:length() * 0.02) * 2
-        local addHoverAlt = math.max(0, currentAlt - self.baseHoveringAlt) * 0.25
-        newTargetAlt = newTargetAlt + addHoverAlt + speedHeight
-        ac.debug("r120 - speedHeight", speedHeight, 0, 10)
-        ac.debug("r122 - addHoverAlt", addHoverAlt)
-
-        local customHeight = self:getCustomHeight()
-        newTargetAlt = newTargetAlt + customHeight
+        -- edit here to add custom hover fly height behaviour
+        local defaultAlt = self:getDefaultAltitudeCorrection(currentAlt)
+        local customAlt = o -- self:getCustomAltitudeCorrection()
+        newTargetAlt = newTargetAlt + defaultAlt + customAlt
     end
 
     self.targetAltitude = newTargetAlt * self.altFilterAlpha
                  + self.targetAltitude * self.altFilterAlphaN
-    ac.debug("r150 - self.targetAltitude", self.targetAltitude, 0, 20)
+    -- ac.debug("r150 - self.targetAltitude", self.targetAltitude, 0, 20)
 
     local error = self.targetAltitude - currentAlt
     ac.debug("r220 - error", error)
 
     local ctrlForce = self.hoverCtrl:makeStep(error)
-    ac.debug("r260 - ctrlForce", ctrlForce)
+    -- ac.debug("r260 - ctrlForce", ctrlForce)
     self.hoverCtrl:setIntegralLimit(-0.1)
-    ac.debug("r340 - integral", self.hoverCtrl.integral)
+    -- ac.debug("r340 - integral", self.hoverCtrl.integral)
 
     ctrlForce = math.clampN(ctrlForce, -500, 20000)
     local force = baseHoverForce + ctrlForce
     force = force * powerK    -- smooth hover on/off
 
-    ac.debug("r440 - force", force)
+    -- ac.debug("r440 - force", force)
     self.fly:lift(force)
 end
 function FlyCtrl:runTurboLift(input)
     local clutch = math.max(0, input - 0.4)
     local force = (clutch * carCTRL.TurboLiftMult)^2
-    ac.debug("r480 - runTurboLift", force)
+    -- ac.debug("r480 - runTurboLift", force)
     self.fly:turboLift(force)
 end
 function FlyCtrl:runAccBrk(gas, brake)
@@ -219,7 +222,7 @@ end
 function FlyCtrl:runRoll(input)
     local steerRoll = input * carCTRL.Steer.RollMult
 
-    ac.debug("r580 - steerRoll", steerRoll, -1 , 1)
+    -- ac.debug("r580 - steerRoll", steerRoll, -1 , 1)
     local current = data.side.y - steerRoll
     local force = self.rollCtrl:makeStep(-current)
     self.fly:roll(force)
@@ -492,6 +495,6 @@ local function script_hoverMode(dt)
     runClock()
     sm:makeMove()
 
-    debugOutput()
+    -- debugOutput()
 end
 return script_hoverMode
