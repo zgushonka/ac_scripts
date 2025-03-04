@@ -172,7 +172,7 @@ function FlyCtrl:runHover(powerK, ss)  -----------------------------------------
     if ss == SState.FLY then
         -- edit here to add custom hover fly height behaviour
         local defaultAlt = self:getDefaultAltitudeCorrection(currentAlt)
-        local customAlt = o -- self:getCustomAltitudeCorrection()
+        local customAlt = 0 -- self:getCustomAltitudeCorrection()
         newTargetAlt = newTargetAlt + defaultAlt + customAlt
     end
 
