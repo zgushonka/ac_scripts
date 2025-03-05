@@ -1,5 +1,5 @@
 -- Hover mode
--- by: zgshnk v2.20 20250304. Licensed under CC BY-SA 4.0.
+-- by: zgshnk v2.26 20250305. Licensed under CC BY-SA 4.0.
 -- https://creativecommons.org/licenses/by-sa/4.0/
 
 local data = ac.accessCarPhysics()
@@ -12,15 +12,9 @@ local carCTRL = {
     Steer = {
         Mult = 10,
         RollMult = 2.75
-    },
-    CntSteer = {
-        Mult = 2000,
-        v = vec3(-1, 0.35, 0)
     }
 }
 local H = {
-    enableRate = 0.001,
-    enCount = 0,
     FlyHeight = 1.95,
     LandingHeight = 0.55,
     Pid = {
@@ -54,7 +48,7 @@ local ST = {
 local AIR = {
     resistScale = const(vec3(15, 5, 1):scale(-1)),
     resistMult = 11,
-    brakeMult = 10
+    brakeMult = 2
 }
 -- vec3(left, up, front)
 local vec = {
@@ -120,6 +114,8 @@ function FlyCtrl:new(pitchCtrl, yawCtrl, rollCtrl, hoverCtrl, flyEngine)
     obj.trgRoll = 0
     obj.steerRoll = 0
 
+    obj.flyPosYtoTrackStart = 0
+
     obj.pitchOffset = 0
     obj.baseHoveringAlt = 0
     obj.targetAltitude = 0
@@ -162,9 +158,20 @@ function FlyCtrl:getDefaultAltitudeCorrection(currentAlt) -- returns value in me
         return addHoverAlt + speedHeight
 end
 function FlyCtrl:getReycastAlt()
-    local distToGround = physics.raycastTrack(car.position, vec.Dn, 20)
-    local noIntersection = (distToGround == -1)
-    return noIntersection and car.position.y or distToGround
+    local distToGround = self:getReycastAltRaw()
+    local isDistValid = (distToGround ~= -1)
+    if isDistValid then
+        self.flyPosYtoTrackStart = distToGround - car.position.y
+        return distToGround
+    else
+        return car.position.y + self.flyPosYtoTrackStart
+    end
+end
+local tempPos = vec3()
+local tempYOffset = vec3(0, 0.5, 0)
+function FlyCtrl:getReycastAltRaw()
+    tempPos:set(car.position):add(tempYOffset)
+    return physics.raycastTrack(tempPos, vec.Dn, 100)
 end
 function FlyCtrl:runHover(powerK, ss)  ------------------------------------------------------
     local newTargetAlt = self.baseHoveringAlt
@@ -326,7 +333,7 @@ local Text = {
 }
 local function makeAltimeterLine()
     local height = math.round(flyCtrl:getReycastAlt(), 1)
-    return string.format("%s: %0.1fm", Text.altimeter ,height)
+    return string.format("%s: %0.1fm", Text.altimeter, height)
 end
 local function showAltitude()
     ac.setMessage(Text.title, makeAltimeterLine())
@@ -391,6 +398,11 @@ function StateMachine:makeMove()
         self.model:setHoveringAlt(H.LandingHeight)
         self:switchState(SState.LANDING)
         showHoverStatus(Text.modeLanding, Text.on)
+
+    elseif inLandingSt and isFlyOn then
+        self.model:setHoveringAlt(H.FlyHeight)
+        self:switchState(SState.FLY)
+        showHoverStatus(Text.modeHover, Text.on)
 
     elseif inLandingSt and onLand then
         self:startTimer()
