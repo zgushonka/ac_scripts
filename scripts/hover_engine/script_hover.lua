@@ -1,22 +1,26 @@
 -- Hover mode
--- by: zgshnk v2.26 20250305. Licensed under CC BY-SA 4.0.
+-- by: zgshnk v2.38 20250309. Licensed under CC BY-SA 4.0.
 -- https://creativecommons.org/licenses/by-sa/4.0/
 
 local data = ac.accessCarPhysics()
-local baseHoverForce = const((car.mass - 42 * 3) * 9.8)
+
 local carCTRL = {
-    AccMult = 20000,
+    AccMult = 25000,
     BrakeMult = 1500,
-    TurboLiftMult = 170,
+    LocalLiftMult = 170,
+    ClutchPitchMult = 1.2,
 
     Steer = {
         Mult = 10,
         RollMult = 2.75
     }
 }
+local baseHoverForce = const((car.mass - 42 * 3.5) * 9.8)
 local H = {
     FlyHeight = 1.95,
     LandingHeight = 0.55,
+    WingS = 1,              -- m^2
+    Rho = 1.225,            -- Air density (kg/m^3)
     Pid = {
         mult = 5500,
         kp = 0.75,
@@ -27,10 +31,10 @@ local H = {
 local ST = {
     FClamp = 10000, -- force clamp
     xPitchPid = {   --  Pitch   - data.up.z
-        mult = 600,
-        kp = 0.75,
-        ki = 0.01,
-        kd = 0.65
+        mult = 370,
+        kp = 0.85,
+        ki = 0.05,
+        kd = 0.55
     },
     yYawPid = {     --  Yaw     - localAngularVelocity.y
         mult = 250,
@@ -46,7 +50,7 @@ local ST = {
     }
 }
 local AIR = {
-    resistScale = const(vec3(15, 5, 1):scale(-1)),
+    resistScale = const(vec3(11, 5, 1):scale(-1)),
     resistMult = 11,
     brakeMult = 2
 }
@@ -115,7 +119,7 @@ function FlyCtrl:new(pitchCtrl, yawCtrl, rollCtrl, hoverCtrl, flyEngine)
     obj.steerRoll = 0
 
     obj.flyPosYtoTrackStart = 0
-
+    obj.currentAlt = 0
     obj.pitchOffset = 0
     obj.baseHoveringAlt = 0
     obj.targetAltitude = 0
@@ -138,11 +142,19 @@ function FlyCtrl:run(powerK, ss)
         self:resetAll()
         return
     end
-
+    self.currentAlt = self:getReycastAlt()
     self:runHover(powerK, ss)
-    self:runTurboLift(1 - data.clutch)
+
+    local isClutchMakesPitch = car.extraC
+    if isClutchMakesPitch then
+        self:runPitchClutch(self.pitchOffset)
+        self:runAirLift(1 - data.clutch)
+    else
+        self:runPitch(self.pitchOffset)
+        self:runClutchLift(1 - data.clutch)
+    end
+
     self:runAccBrk(data.gas, data.brake)
-    self:runPitch(self.pitchOffset)
     self:runYaw(data.steer)
     self:runRoll(data.steer)
     self:runAirResist(data.brake)
@@ -151,11 +163,9 @@ end
 --     return 0
 -- end
 function FlyCtrl:getDefaultAltitudeCorrection(currentAlt) -- returns value in meters
-        local speedHeight = math.saturate(data.localVelocity:length() * 0.02) * 2
-        local addHoverAlt = math.max(0, currentAlt - self.baseHoveringAlt) * 0.25
-        -- ac.debug("r120 - speedHeight", speedHeight, 0, 10)
-        -- ac.debug("r122 - addHoverAlt", addHoverAlt)
-        return addHoverAlt + speedHeight
+    local speedHeight = math.saturate(data.localVelocity:length() * 0.02) * 1.75
+    -- ac.debug("r120 - speedHeight", speedHeight, 0, 10)
+    return speedHeight
 end
 function FlyCtrl:getReycastAlt()
     local distToGround = self:getReycastAltRaw()
@@ -175,7 +185,7 @@ function FlyCtrl:getReycastAltRaw()
 end
 function FlyCtrl:runHover(powerK, ss)  ------------------------------------------------------
     local newTargetAlt = self.baseHoveringAlt
-    local currentAlt = self:getReycastAlt()
+    local currentAlt = self.currentAlt
 
     -- ac.debug("r120 - currentAlt", currentAlt, -2, 25)
     if ss == SState.FLY then
@@ -190,7 +200,7 @@ function FlyCtrl:runHover(powerK, ss)  -----------------------------------------
     -- ac.debug("r150 - self.targetAltitude", self.targetAltitude, 0, 20)
 
     local error = self.targetAltitude - currentAlt
-    ac.debug("r220 - error", error)
+    -- ac.debug("r220 - error", error)
 
     local ctrlForce = self.hoverCtrl:makeStep(error)
     -- ac.debug("r260 - ctrlForce", ctrlForce)
@@ -201,24 +211,41 @@ function FlyCtrl:runHover(powerK, ss)  -----------------------------------------
     local force = baseHoverForce + ctrlForce
     force = force * powerK    -- smooth hover on/off
 
-    -- ac.debug("r440 - force", force)
-    self.fly:lift(force)
+    -- ac.debug("r440 - force", force, 9000, 14000)
+    self.fly:worldLift(force)
 end
-function FlyCtrl:runTurboLift(input)
+function FlyCtrl:runClutchLift(input)
     local clutch = math.max(0, input - 0.4)
-    local force = (clutch * carCTRL.TurboLiftMult)^2
-    -- ac.debug("r480 - runTurboLift", force)
-    self.fly:turboLift(force)
+    local force = (clutch * carCTRL.LocalLiftMult)^2
+    -- ac.debug("r480 - runClutchLift", force)
+    self.fly:localLift(force)
+end
+local wingS_Rho_pi = const(H.Rho * H.WingS * math.pi)
+function FlyCtrl:runAirLift(input) -- 0..1
+    local speed = math.max(data.localVelocity.z, 0)
+    local angleRad = (-0.5 + input * 2) * 1     -- (-0.5 .. +1.5) * mult
+    -- local cLift = 2 * math.pi * angleRad
+    -- local force = 0.5 * H.Rho * speed^2 * H.WingS * cLift
+    local force =  wingS_Rho_pi * speed^2 * angleRad
+    -- ac.debug("r482 - runAirLift", force)
+    self.fly:localLift(force)
 end
 function FlyCtrl:runAccBrk(gas, brake)
     local accF = gas * carCTRL.AccMult
-    -- if car.extraB then accF = accF * 1.4 end -- fly booster
+    if car.extraB then accF = accF * 1.4 end -- fly booster
     local zM = math.clampN(data.localVelocity.z, 0, 4)
     local brakeF = brake * carCTRL.BrakeMult * zM -- reverse
     self.fly:accBrk(accF, brakeF)
 end
 function FlyCtrl:runPitch(offset)
     local current = data.look.y + offset
+    local force = self.pitchCtrl:makeStep(-current)
+    self.fly:pitch(force)
+end
+function FlyCtrl:runPitchClutch(offset)
+    local pitchClutch = (1 - car.clutch) * carCTRL.ClutchPitchMult
+    -- ac.debug("a300 - pitchClutch", pitchClutch, -5 , 5)
+    local current = data.look.y + offset - pitchClutch
     local force = self.pitchCtrl:makeStep(-current)
     self.fly:pitch(force)
 end
@@ -296,11 +323,11 @@ function FlyEngine:roll(f)
     ac.addForce(carP.Lt, true, flyFV:setScaled(vec.Up, f), true)
     ac.addForce(carP.Rt, true, flyFV:setScaled(vec.Up,-f), true)
 end
-function FlyEngine:lift(f)
+function FlyEngine:worldLift(f)
     local lf = math.clampN(f, -5000, 50000)
     ac.addForce(carP.Top, true, flyFV:setScaled(vec.Up, lf), false)
 end
-function FlyEngine:turboLift(f)
+function FlyEngine:localLift(f)
     ac.addForce(carP.Top, true, flyFV:setScaled(vec.Up, f), true)
 end
 function FlyEngine:accBrk(aF, bF)
@@ -316,8 +343,9 @@ end
 local flyCtrl = {}
 local sm = {}
 local function debugOutput()
-    ac.debug("a101 - extraA", car.extraA)
-    ac.debug("c102 - carP.Ct", carP.Ct)
+    ac.debug("a1 HoverON: extraA", car.extraA)
+    ac.debug("a2 Flight Booster: extraB", car.extraB)
+    ac.debug("a3 Hover Clutch Pitch: extraC", car.extraC)
 
     ac.debug("c122 - sm.ss", sm.ss)
 end
@@ -332,7 +360,7 @@ local Text = {
     off = "Off"
 }
 local function makeAltimeterLine()
-    local height = math.round(flyCtrl:getReycastAlt(), 1)
+    local height = math.round(flyCtrl.currentAlt, 1)
     return string.format("%s: %0.1fm", Text.altimeter, height)
 end
 local function showAltitude()
@@ -385,7 +413,7 @@ function StateMachine:makeMove()
     local inAirSt = inFlySt or inLandingSt
 
     local isFlyOn = car.extraA
-    local onLand = self.model:getReycastAlt() < (H.LandingHeight + 0.2)
+    local onLand = self.model.currentAlt < (H.LandingHeight + 0.2)
 
     if inDriveSt and isFlyOn then
         self.model:setHoveringAlt(H.FlyHeight)
@@ -440,7 +468,8 @@ function StateMachine:doDrive()
     self.model:resetAll()
 end
 function StateMachine:doFly()
-    self.model.pitchOffset = 0.02
+    local clutchPitchOffset = car.extraC and 0.27 or 0
+    self.model.pitchOffset = 0.02 + clutchPitchOffset
     local zeroToOne = 1 - self:switchingProgress()
     self.model:run(zeroToOne, self.ss)
 end
