@@ -7,6 +7,7 @@ local Color = {
     green  = rgbm(0.05, 1.00, 0.05, 1),
 }
 local dt = const(1 / 333)
+local data = ac.accessCarPhysics()
 
 local LaserPulse = {}
 function LaserPulse:new(input)
@@ -38,19 +39,30 @@ function LaserPulse:run()
 end
 
 local beamIndex = 1
+local xOff = 5.075
+local yOff = 1.32
+local zOff = 3.9
 local function getXWingNextTurretPos()
-    local pos = car.position:clone():addScaled(car.graphicsOffset, -1)
+    local pos = data.position:clone()
     if      beamIndex == 1 then beamIndex = beamIndex + 1
-        pos:addScaled(car.side, 1):addScaled(car.up, 0.5)
+        pos:addScaled(data.side,  xOff)
+            :addScaled(data.up,   yOff)
+            :addScaled(data.look, zOff)
 
     elseif  beamIndex == 2 then beamIndex = beamIndex + 1
-        pos:addScaled(car.side, 1):addScaled(car.up,-0.5)
+        pos:addScaled(data.side,  xOff)
+            :addScaled(data.up,  -yOff)
+            :addScaled(data.look, zOff)
 
     elseif  beamIndex == 3 then beamIndex = beamIndex + 1
-        pos:addScaled(car.side,-1):addScaled(car.up,-0.5)
+        pos:addScaled(data.side, -xOff)
+            :addScaled(data.up,  -yOff)
+            :addScaled(data.look, zOff)
 
     elseif  beamIndex == 4 then beamIndex = 1
-        pos:addScaled(car.side,-1):addScaled(car.up, 0.5)
+        pos:addScaled(data.side, -xOff)
+            :addScaled(data.up,   yOff)
+            :addScaled(data.look, zOff)
     end
     return pos
 end
@@ -58,10 +70,10 @@ end
 local function addBeamTo(beams)
     local newPulse = LaserPulse:new({
         pos = getXWingNextTurretPos(),
-        look = car.look,
-        dist = 300,     -- m
-        speed = 150,    -- m/s
-        length = 40     -- units
+        look = data.look,
+        dist = 550,     -- m
+        speed = 450,    -- m/s
+        length = 50     -- units
     })
     table.insert(beams, newPulse)
 end
@@ -104,38 +116,3 @@ local function script_turboLasers(_)
     processBunchOf(beams)
 end
 return script_turboLasers
-
--- ---@param params {
---     color: rgbm, 
---     colorConsistency: number, 
---     thickness: number, 
---     life: number, 
---     size: number, 
---     spreadK: number,
---     growK: number,
---     targetYVelocity: number
--- }|`{
---     color = rgbm(0.5, 0.5, 0.5, 0.5),
---     colorConsistency = 0.5,
---     thickness = 1,
---     life = 4,
---     size = 0.2,
---     spreadK = 1,
---     growK = 1,
---     targetYVelocity = 0
--- }` 
--- "Table with properties:
--- - `color` (`rgbm`): Smoke color with values from 0 to 1. 
---                      Alpha can be used to adjust thickness.
---                      Default alpha value: 0.5.
--- - `colorConsistency` (`number`): Defines how much color dissipates when smoke expands, 
---                      from 0 to 1. Default value: 0.5.
--- - `thickness` (`number`): How thick is smoke, from 0 to 1. Default value: 1.
--- - `life` (`number`): Smoke base lifespan in seconds. Default value: 4.
--- - `size` (`number`): Starting particle size in meters. Default value: 0.2.
--- - `spreadK` (`number`): How randomized is smoke spawn (mostly, speed and direction).
---                      Default value: 1.
--- - `growK` (`number`): How fast smoke expands. Default value: 1.
--- - `targetYVelocity` (`number`): Neutral vertical velocity.
---                      Set above zero for hot gasses and below zero for cold, 
---                      to collect at the bottom. Default value: 0."
