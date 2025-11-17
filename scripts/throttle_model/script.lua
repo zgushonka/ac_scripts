@@ -3,5 +3,5 @@
 -- https://creativecommons.org/licenses/by-sa/4.0/
 
 function script.update(dt)
-  require("script_throttle_model")(dt)
+    require("scr_throttle_model")(dt)
 end
