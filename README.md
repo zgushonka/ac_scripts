@@ -2,7 +2,7 @@
 
 Scripts for AssettoCorsa mods.
 
-Here You going to find some scripts I use for AssettoCorsa mods.
+Here You going to find some scripts for AssettoCorsa mods.
 
 LUA:
 * Cruise Control
