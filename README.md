@@ -14,3 +14,4 @@ LUA:
 
 Tools:
 * 3dsmax-to-AC car export in 3 clicks
+* Dummy scale halper
