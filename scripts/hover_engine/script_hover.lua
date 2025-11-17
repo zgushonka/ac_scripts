@@ -1,5 +1,5 @@
 -- Hover mode
--- by: zgshnk v2.38 20250309. Licensed under CC BY-SA 4.0.
+-- by: zgshnk v2.39 20250309. Licensed under CC BY-SA 4.0.
 -- https://creativecommons.org/licenses/by-sa/4.0/
 
 local data = ac.accessCarPhysics()
@@ -171,16 +171,16 @@ function FlyCtrl:getReycastAlt()
     local distToGround = self:getReycastAltRaw()
     local isDistValid = (distToGround ~= -1)
     if isDistValid then
-        self.flyPosYtoTrackStart = distToGround - car.position.y
+        self.flyPosYtoTrackStart = distToGround - data.position.y
         return distToGround
     else
-        return car.position.y + self.flyPosYtoTrackStart
+        return data.position.y + self.flyPosYtoTrackStart
     end
 end
 local tempPos = vec3()
 local tempYOffset = vec3(0, 0.5, 0)
 function FlyCtrl:getReycastAltRaw()
-    tempPos:set(car.position):add(tempYOffset)
+    tempPos:set(data.position):add(tempYOffset)
     return physics.raycastTrack(tempPos, vec.Dn, 100)
 end
 function FlyCtrl:runHover(powerK, ss)  ------------------------------------------------------
@@ -243,7 +243,7 @@ function FlyCtrl:runPitch(offset)
     self.fly:pitch(force)
 end
 function FlyCtrl:runPitchClutch(offset)
-    local pitchClutch = (1 - car.clutch) * carCTRL.ClutchPitchMult
+    local pitchClutch = (1 - data.clutch) * carCTRL.ClutchPitchMult
     -- ac.debug("a300 - pitchClutch", pitchClutch, -5 , 5)
     local current = data.look.y + offset - pitchClutch
     local force = self.pitchCtrl:makeStep(-current)
@@ -251,7 +251,7 @@ function FlyCtrl:runPitchClutch(offset)
 end
 function FlyCtrl:runYaw(input)
     local steerTurn = self:steerSpeedMult(input) * carCTRL.Steer.Mult
-    local current = steerTurn + data.localAngularVelocity.y * (1 + car.brake*0.5)
+    local current = steerTurn + data.localAngularVelocity.y * (1 + data.brake*0.5)
     local force = self.yawCtrl:makeStep(-current)
     self.fly:yaw(force)
 end
@@ -497,6 +497,6 @@ local function script_hoverMode(dt)
     end
     sm:makeMove()
 
-    debugOutput()
+    -- debugOutput()
 end
 return script_hoverMode
