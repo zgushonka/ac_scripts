@@ -10,3 +10,6 @@ Here You going to find some scripts I use for AssettoCorsa mods.
 * Throttle Model
 * Turbolasers (for X-Wing)
 * Wipe windsheeld once button script
+
+
+
