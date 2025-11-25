@@ -2,8 +2,6 @@
 -- by: zgshnk v1.42 20251124 -- SPDX-License-Identifier: MIT
 -- Copyright (c) 2025 zgshnk
 
-local carid = car:id()
-
 local chCount = 9
 local con = ac.connect(
     {   ac.StructItem.key('zgshnk.prostir.'..car.index),
@@ -15,9 +13,8 @@ local con = ac.connect(
     },
     false, ac.SharedNamespace.Shared
 )
-
 local function makeSoundGroup()
-    local engineExt = "cars/"..carid.."/engine_ext"
+    local engineExt = "cars/"..car:id().."/engine_ext"
     -- local engineExtDirect = "cars/:own/engine_ext"
     local aCh = ac.AudioChannel.Engine
     -- local aCh = ac.AudioChannel.CarComponents

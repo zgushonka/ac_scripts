@@ -13,10 +13,8 @@ local con = ac.connect(
     false, ac.SharedNamespace.Shared
 )
 
-
-local carid = car:id()
 local function makeSoundGroup()
-    local engineExt = "cars/"..carid.."/engine_ext"
+    local engineExt = "cars/"..car:id().."/engine_ext"
     -- local engineExtDirect = "cars/:own/engine_ext"
     local aCh = ac.AudioChannel.Engine
     -- local aCh = ac.AudioChannel.CarComponents
