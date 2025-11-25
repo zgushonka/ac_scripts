@@ -2,8 +2,6 @@
 -- by: zgshnk v1.42 20251124 -- SPDX-License-Identifier: MIT
 -- Copyright (c) 2025 zgshnk
 
-local carid = car:id()
-
 local chCount = 4
 local con = ac.connect(
     {   ac.StructItem.key('zgshnk.car_sound_reflect.'..car.index),
@@ -16,6 +14,7 @@ local con = ac.connect(
 )
 
 
+local carid = car:id()
 local function makeSoundGroup()
     local engineExt = "cars/"..carid.."/engine_ext"
     -- local engineExtDirect = "cars/:own/engine_ext"

@@ -2,8 +2,6 @@
 -- by: zgshnk v1.42 20251124 -- SPDX-License-Identifier: MIT
 -- Copyright (c) 2025 zgshnk
 
-local carid = car:id()
-
 local chCount = 3
 local con = ac.connect(
     {   ac.StructItem.key('zgshnk.aeropass.'..car.index),
@@ -14,6 +12,7 @@ local con = ac.connect(
     false, ac.SharedNamespace.Shared
 )
 
+local carid = car:id()
 local function makeSoundGroup()
     local wind = "cars/"..carid.."/wind"
     local aCh = ac.AudioChannel.Wind
