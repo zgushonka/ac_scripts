@@ -1,9 +1,8 @@
 -- Wind sound
--- by: zgshnk v1.38 20251109 -- SPDX-License-Identifier: MIT
+-- by: zgshnk v1.42 20251124 -- SPDX-License-Identifier: MIT
 -- Copyright (c) 2025 zgshnk
 
 local carid = car:id()
-ac.loadSoundbank(carid..'.bank', 'GUIDs.txt')
 
 local chCount = 3
 local con = ac.connect(
@@ -69,12 +68,12 @@ local function proccess(allSounds)
 end
 
 local soundGroup, allSounds = {}, {}
-local inidDone = false
+local initDone = false
 local function ext_aeropass(dt)
-    if inidDone == false then
+    if initDone == false then
         soundGroup = makeSoundGroup()
         allSounds = loadSoundPack(soundGroup)
-        inidDone = true
+        initDone = true
     end
     proccess(allSounds)
 end

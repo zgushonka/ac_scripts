@@ -1,9 +1,8 @@
 -- Prostir ext reflect
--- by: zgshnk v1.40 20251111 -- SPDX-License-Identifier: MIT
+-- by: zgshnk v1.42 20251124 -- SPDX-License-Identifier: MIT
 -- Copyright (c) 2025 zgshnk
 
 local carid = car:id()
-ac.loadSoundbank(carid..'.bank', 'GUIDs.txt')
 
 local chCount = 4
 local con = ac.connect(
@@ -19,12 +18,14 @@ local con = ac.connect(
 
 local function makeSoundGroup()
     local engineExt = "cars/"..carid.."/engine_ext"
+    -- local engineExtDirect = "cars/:own/engine_ext"
     local aCh = ac.AudioChannel.Engine
     -- local aCh = ac.AudioChannel.CarComponents
     return {
         cfg = {
             engExt = {
                 name = engineExt,
+                -- nameDirect = engineExtDirect,
                 rev = true, occ = true, aCh = aCh
             }
         }
@@ -32,6 +33,7 @@ local function makeSoundGroup()
 end
 local function loadAudioEvent(cfg)
     local sound = ac.AudioEvent(cfg.name, cfg.rev or true, cfg.occ or true)
+    -- local sound = ac.AudioEvent(cfg.nameDirect, true)
     sound:setVolumeChannel(cfg.aCh)
     sound.cameraInteriorMultiplier = 1
     sound.cameraExteriorMultiplier = 1
@@ -75,12 +77,12 @@ local function proccess(allSounds)
 end
 
 local soundGroup, allSounds = {}, {}
-local inidDone = false
+local initDone = false
 local function ext_prostir_cars(dt)
-    if inidDone == false then
+    if initDone == false then
         soundGroup = makeSoundGroup()
         allSounds = loadSoundPack(soundGroup)
-        inidDone = true
+        initDone = true
     end
     proccess(allSounds)
 end

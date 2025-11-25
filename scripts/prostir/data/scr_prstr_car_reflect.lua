@@ -3,7 +3,7 @@
 -- https://creativecommons.org/licenses/by-nc-sa/4.0/
 
 local data = ac.accessCarPhysics()
-local MAX_DIST = 25
+local MAX_DIST = 35
 local extCfg   = require("scr_prstr_cfg")
 local VOL_Mult = extCfg.VolumeMult_otherCars
 local chCount = 4
