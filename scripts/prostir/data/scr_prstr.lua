@@ -1,6 +1,6 @@
 -- Prostir
--- by: zgshnk v1.40 20251111. Licensed under CC BY-NC-SA 4.0.
--- https://creativecommons.org/licenses/by-nc-sa/4.0/
+-- by: zgshnk v1.40 2026 -- SPDX-License-Identifier: MIT
+-- Copyright (c) 2026 zgshnk
 
 local clr = {
     orange = rgbm(1.00, 0.60, 0.00, 1),

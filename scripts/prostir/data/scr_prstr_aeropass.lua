@@ -1,6 +1,6 @@
 -- Aero pass
--- by: zgshnk v1.22 20251101. Licensed under CC BY-NC-SA 4.0.
--- https://creativecommons.org/licenses/by-nc-sa/4.0/
+-- by: zgshnk v1.22 2026 -- SPDX-License-Identifier: MIT
+-- Copyright (c) 2026 zgshnk
 
 local data = ac.accessCarPhysics()
 

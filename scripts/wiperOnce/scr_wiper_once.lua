@@ -1,6 +1,6 @@
 -- Wipe windsheeld once.
--- by: zgshnk v1.01 20251030. -- SPDX-License-Identifier: MIT
--- Copyright (c) 2025 zgshnk
+-- by: zgshnk v1.01 2026 -- SPDX-License-Identifier: MIT
+-- Copyright (c) 2026 zgshnk
 
 -- local data = ac.accessCarPhysics()
 

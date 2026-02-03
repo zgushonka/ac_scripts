@@ -1,6 +1,6 @@
 -- Sound engine assembly
--- by: zgshnk -- SPDX-License-Identifier: MIT
--- Copyright (c) 2025 zgshnk
+-- by: zgshnk 2026 -- SPDX-License-Identifier: MIT
+-- Copyright (c) 2026 zgshnk
 
 local scr_prstr             = require("scr_prstr")
 local scr_prstr_aeropass    = require("scr_prstr_aeropass")

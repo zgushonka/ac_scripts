@@ -1,6 +1,6 @@
 -- Script assembly
--- by: zgshnk -- SPDX-License-Identifier: MIT
--- Copyright (c) 2025 zgshnk
+-- by: zgshnk 2026 -- SPDX-License-Identifier: MIT
+-- Copyright (c) 2026 zgshnk
 
 function script.update(dt)
 

@@ -1,6 +1,6 @@
 -- Prostir ext reflect
--- by: zgshnk v1.42 20251124 -- SPDX-License-Identifier: MIT
--- Copyright (c) 2025 zgshnk
+-- by: zgshnk v1.42 2026 -- SPDX-License-Identifier: MIT
+-- Copyright (c) 2026 zgshnk
 
 local chCount = 4
 local con = ac.connect(

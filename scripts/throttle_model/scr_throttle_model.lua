@@ -1,6 +1,6 @@
 -- Throttle model. Based on Niels Heusinkveld explanation and JPG_18 hints.
--- by: zgshnk v2.31 20250922. -- SPDX-License-Identifier: MIT
--- Copyright (c) 2025 zgshnk
+-- by: zgshnk v2.31 2026 -- SPDX-License-Identifier: MIT
+-- Copyright (c) 2026 zgshnk
 
 local data = ac.accessCarPhysics()
 

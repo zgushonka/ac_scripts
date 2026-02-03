@@ -1,6 +1,6 @@
 -- Turbolasers.
--- by: zgshnk v1.10 20251116. -- SPDX-License-Identifier: MIT
--- Copyright (c) 2025 zgshnk
+-- by: zgshnk v1.10 2026 -- SPDX-License-Identifier: MIT
+-- Copyright (c) 2026 zgshnk
 
 local Color = {
     red    = rgbm(1.00, 0.05, 0.05, 1),

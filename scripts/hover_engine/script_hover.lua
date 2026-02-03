@@ -1,6 +1,6 @@
 -- Hover mode
--- by: zgshnk v2.39 20250309. Licensed under CC BY-SA 4.0.
--- https://creativecommons.org/licenses/by-sa/4.0/
+-- by: zgshnk v2.39 2026 -- SPDX-License-Identifier: MIT
+-- Copyright (c) 2026 zgshnk
 
 local data = ac.accessCarPhysics()
 
