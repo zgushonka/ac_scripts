@@ -29,6 +29,7 @@ end
 local ackFrTmp = vec3()
 ---@param wheelIndex ac.Wheel
 ---@param dist number
+---@param color rgbm
 function Ackermann:drawWheel(wheelIndex, dist, color)
     local wheel = data.wheels[wheelIndex]
     local startPos = wheel.position
@@ -39,6 +40,7 @@ end
 
 local ackDirTmp, ackRearEndTmp, ackRearStartTmp = vec3(), vec3(), vec3()
 ---@param dist number
+---@param offset number
 function Ackermann:drawRearAxle(dist, offset)
     local rearLPos = data.wheels[ac.Wheel.RearLeft].position
     local rearRPos = data.wheels[ac.Wheel.RearRight].position
