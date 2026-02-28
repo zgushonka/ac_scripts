@@ -1,16 +1,20 @@
-# AssettoCorsa scripts
+# Assetto Corsa scripts
 
-Scripts for AssettoCorsa mods.
+Scripts for Assetto Corsa mods.
 
 Here You going to find some scripts for AssettoCorsa mods.
 
-LUA:
+Please check [wiki page](https://github.com/zgushonka/ac_scripts/wiki)
+
+Lua:
 * Cruise Control
 * Hover engine (used in DeLorean Time Machine and X-Wing mods)
 * Prostir (Spacious Sound Mod)
 * Throttle Model
 * Turbolasers (for X-Wing)
 * Wipe windsheeld once button script
+* Sun Visors
+* Ackermann geometry visualisation
 
 Tools:
 * 3dsmax-to-AC car export in 3 clicks
