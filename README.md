@@ -4,6 +4,8 @@ Scripts for Assetto Corsa mods.
 
 Here You going to find some scripts for AssettoCorsa mods.
 
+Please check [wiki page](https://github.com/zgushonka/ac_scripts/wiki)
+
 Lua:
 * Cruise Control
 * Hover engine (used in DeLorean Time Machine and X-Wing mods)
