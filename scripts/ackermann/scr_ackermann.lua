@@ -1,5 +1,5 @@
 -- draw Ackermann geometry
--- by: zgshnk v1.02 2026. -- SPDX-License-Identifier: MIT
+-- by: zgshnk v1.03 2026. -- SPDX-License-Identifier: MIT
 -- Copyright (c) 2026 zgshnk
 
 local data = ac.accessCarPhysics()
@@ -44,7 +44,7 @@ local ackDirTmp, ackRearEndTmp, ackRearStartTmp = vec3(), vec3(), vec3()
 function Ackermann:drawRearAxle(dist, offset)
     local rearLPos = data.wheels[ac.Wheel.RearLeft].position
     local rearRPos = data.wheels[ac.Wheel.RearRight].position
-    local dir = ackDirTmp:set(rearLPos):sub(rearRPos)
+    local dir = ackDirTmp:set(rearLPos):sub(rearRPos):normalize()
     local startPos = ackRearStartTmp:set(rearRPos)
     local endPos = ackRearEndTmp:set(rearLPos):addScaled(dir, dist)
     endPos.y = startPos.y
