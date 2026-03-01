@@ -11,7 +11,7 @@ local Color = {
 }
 
 --
-Ackermann = {}
+local Ackermann = {}
 ---@param rearOffsetMeters number
 function Ackermann:draw(rearOffsetMeters)
     local dist = 25
