@@ -1,5 +1,5 @@
 -- draw Ackermann geometry
--- by: zgshnk v1.01 2026. -- SPDX-License-Identifier: MIT
+-- by: zgshnk v1.02 2026. -- SPDX-License-Identifier: MIT
 -- Copyright (c) 2026 zgshnk
 
 local data = ac.accessCarPhysics()
