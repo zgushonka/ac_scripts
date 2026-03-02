@@ -1,5 +1,5 @@
 -- draw Scrub 
--- by: zgshnk v1.04 2026. -- SPDX-License-Identifier: MIT
+-- by: zgshnk v1.05 2026. -- SPDX-License-Identifier: MIT
 -- Copyright (c) 2026 zgshnk
 
 local data = ac.accessCarPhysics()
@@ -21,7 +21,7 @@ function Scrub:draw(isStrut)
     local kp0Pos = self:_calcKpPos(kp0PosTmp, self.kp0Coord, self.rimOffset)
 
     local dir = dirTmp:set(kp0Pos):sub(kp1Pos):normalize()
-    local distToGround, groundPkPos = self:castRay(kp1Pos, dir, 3)
+    local distToGround, groundPkPos = self:_castRay(kp1Pos, dir, 3)
     local endPos = endPosTmp:set(kp1Pos):addScaled(dir, distToGround)
     ac.drawDebugLine(kp1Pos, endPos, Color.white)
 
@@ -32,16 +32,16 @@ function Scrub:draw(isStrut)
     ac.debug('c130 - kpGroundPos', groundPkPos)
     ac.debug('c140 - touchPos', touchPos)
 end
-local kpReader = require("scr_susp_ini_reader")
+local suspIniReader = require("scr_susp_ini_reader")
 function Scrub:_updateSuspValues()
-    self.kp0Coord, self.kp1Coord = kpReader:readKpCoord()
+    self.kp0Coord, self.kp1Coord = suspIniReader:readKpCoord()
 
-    self.wheelbase  = kpReader:readBasic('WHEELBASE')
-    self.cog        = kpReader:readBasic('CG_LOCATION')
+    self.wheelbase  = suspIniReader:readBasic('WHEELBASE')
+    self.cog        = suspIniReader:readBasic('CG_LOCATION')
 
-    self.frontBaseY = kpReader:readFront('BASEY')
-    self.rimOffset  = kpReader:readFront('RIM_OFFSET')
-    self.frontTrack = kpReader:readFront('TRACK')
+    self.frontBaseY = suspIniReader:readFront('BASEY')
+    self.rimOffset  = suspIniReader:readFront('RIM_OFFSET')
+    self.frontTrack = suspIniReader:readFront('TRACK')
 end
 
 function Scrub:_calcKp1Pos(isStrut)
@@ -70,11 +70,9 @@ function Scrub:_calcKpPos(kpPos, kpCoord, xOffset)
         :addScaled(wheel.look, kpCoord.z)
     return kpPos
 end
-
 local touchPoint = vec3()
-function Scrub:castRay(worldPoint, dir, maxDist)
+function Scrub:_castRay(worldPoint, dir, maxDist)
     local dist = physics.raycastTrack(worldPoint, dir, maxDist, touchPoint)
     return dist, touchPoint
 end
 return Scrub
-
