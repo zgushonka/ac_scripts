@@ -1,5 +1,5 @@
 -- draw Scrub 
--- by: zgshnk v1.03 2026. -- SPDX-License-Identifier: MIT
+-- by: zgshnk v1.04 2026. -- SPDX-License-Identifier: MIT
 -- Copyright (c) 2026 zgshnk
 
 local data = ac.accessCarPhysics()
@@ -32,7 +32,7 @@ function Scrub:draw(isStrut)
     ac.debug('c130 - kpGroundPos', groundPkPos)
     ac.debug('c140 - touchPos', touchPos)
 end
-local kpReader = require("scr_kp_reader")
+local kpReader = require("scr_susp_ini_reader")
 function Scrub:_updateSuspValues()
     self.kp0Coord, self.kp1Coord = kpReader:readKpCoord()
 
