@@ -1,5 +1,5 @@
 -- draw Scrub 
--- by: zgshnk v1.02 2026. -- SPDX-License-Identifier: MIT
+-- by: zgshnk v1.03 2026. -- SPDX-License-Identifier: MIT
 -- Copyright (c) 2026 zgshnk
 
 local data = ac.accessCarPhysics()
@@ -52,7 +52,7 @@ function Scrub:_calcKp1Pos(isStrut)
 end
 function Scrub:_calcStrutKp1Pos(kpPos, kpCoord)
     local hubPos = data.position
-        :addScaled(data.side, self.frontTrack / 2)
+        :addScaled(data.side, self.frontTrack * 0.5)
         :addScaled(data.up,   self.frontBaseY)
         :addScaled(data.look, self.wheelbase * (1-self.cog))
     kpPos:set(hubPos)
