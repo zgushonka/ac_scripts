@@ -1,10 +1,12 @@
 -- draw Scrub 
--- by: zgshnk v1.05 2026. -- SPDX-License-Identifier: MIT
+-- by: zgshnk v1.07 2026. -- SPDX-License-Identifier: MIT
 -- Copyright (c) 2026 zgshnk
 
 local data = ac.accessCarPhysics()
 local Color = {
     white  = rgbm(1.00, 1.00, 1.00, 1),
+    red   = rgbm(1.00, 0.30, 0.30, 1),
+    green = rgbm(0.30, 1.00, 0.30, 1),
 }
 --
 local kp0PosTmp, kp1PosTmp = vec3(), vec3()
@@ -25,12 +27,13 @@ function Scrub:draw(isStrut)
     local endPos = endPosTmp:set(kp1Pos):addScaled(dir, distToGround)
     ac.drawDebugLine(kp1Pos, endPos, Color.white)
 
-    local touchPos = data.wheels[ac.Wheel.FrontLeft].contactPoint
+    local wheelPoint = data.wheels[ac.Wheel.FrontLeft].contactPoint
+    self:_printScrubValues(groundPkPos, wheelPoint)
 
-    ac.debug('c020 - kp1Pos', kp1Pos)
-    ac.debug('c030 - kp0Pos', kp0Pos)
-    ac.debug('c130 - kpGroundPos', groundPkPos)
-    ac.debug('c140 - touchPos', touchPos)
+    -- ac.debug('sc020 - kp1Pos', kp1Pos)
+    -- ac.debug('sc030 - kp0Pos', kp0Pos)
+    ac.debug('sc120 - kpGroundPos', groundPkPos)
+    ac.debug('sc130 - wheelPoint', wheelPoint)
 end
 local suspIniReader = require("scr_susp_ini_reader")
 function Scrub:_updateSuspValues()
@@ -75,4 +78,20 @@ function Scrub:_castRay(worldPoint, dir, maxDist)
     local dist = physics.raycastTrack(worldPoint, dir, maxDist, touchPoint)
     return dist, touchPoint
 end
+local scrubVecTmp, scrubRadiusTmp, scrubTrailTmp = vec3(), vec3(), vec3()
+function Scrub:_printScrubValues(scrubPoint, wheelPoint)
+    local wheel = data.wheels[ac.Wheel.FrontLeft]
+    local scrubVec = scrubVecTmp:set(wheelPoint):sub(scrubPoint)
+    local scrubRadius = scrubRadiusTmp:set(scrubVec):dot(wheel.side)
+    local scrubTrail = scrubTrailTmp:set(scrubVec):dot(wheel.look)
+    ac.debug('sc220 - scrubRadius', scrubRadius)
+    ac.debug('sc230 - scrubTrail', scrubTrail)
+
+    local endPos = scrubVecTmp:set(wheelPoint):addScaled(wheel.side, -scrubRadius)
+    ac.drawDebugLine(wheelPoint, endPos, Color.red)
+
+    endPos = scrubVecTmp:set(wheelPoint):addScaled(wheel.look, -scrubTrail)
+    ac.drawDebugLine(wheelPoint, endPos, Color.green)
+end
+--
 return Scrub
