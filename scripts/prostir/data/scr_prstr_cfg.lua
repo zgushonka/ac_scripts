@@ -7,23 +7,23 @@
 local cfg = {
     -- Base config
     -- sound from track walls. Low pitch.
-    VolumeMult_Walls_Low     = 12.0,
+    VolumeMult_Walls_Low     = 5,
 
     -- sound from track walls. High pitch.
-    VolumeMult_Walls_High    = 1.7,
+    VolumeMult_Walls_High    = 2,
 
     -- sound from other cars.
-    VolumeMult_otherCars     = 3.5,
-    VolDownMult = 4,
+    VolumeMult_otherCars     = 2,
+    VolDownMult = 0,
 
     -- Car related data
+    -- bottom sound volume at elevation level.
     VolDownLut = ac.DataLUT11.parse(
 "(|0=0.0|0.37=0.0|0.39=0.2|0.44=0.4|0.50=0.7|1.00=1.00|10=1.0|)"),
 
     eng2Fr =  1.5,
     eng2Re = -1.0,
     eng     = vec3( 0.0, 0.10, -0.5),
-    engShuto= vec3( 0.0,-0.35, -0.5),
     engDn   = vec3( 0.0,-0.10, -0.5),
     Pitch_Low = 0.5,
 }
